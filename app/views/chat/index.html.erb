@@ -1,0 +1,56 @@
+<h1>Chat with GPT-3</h1>
+
+<% @chatlog.each do |chat| %>
+  <div class="<%= chat[:speaker] %>">
+    <%= chat[:text] %>
+  </div>
+<% end %>
+
+<form>
+  <input type="text" id="input" />
+  <input type="submit" value="Send" />
+</form>
+
+<script>
+  const inputElement = document.getElementById("input");
+  const formElement = document.querySelector("form");
+  formElement.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const inputText = inputElement.value;
+    const formData = new FormData();
+    formData.append("prompt", inputText);
+    fetch("/chat", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const chatlogElement = document.querySelector(".bot:last-of-type");
+        chatlogElement.textContent = data.response;
+        const newChat = document.createElement("div");
+        newChat.classList.add("user");
+        newChat.textContent = inputText;
+        inputElement.value = "";
+        chatlogElement.insertAdjacentElement("beforebegin", newChat);
+        inputElement.focus();
+      });
+  });
+</script>
+<h1>Chat with ChatGPT</h1>
+
+<%= form_tag chat_index_path, method: :post do %>
+  <%= text_field_tag :message, nil, placeholder: 'Type your message here...' %>
+  <%= submit_tag 'Send' %>
+<% end %>
+
+<% if @response.present? %>
+  <p><strong>ChatGPT:</strong> <%= @response %></p>
+<% end %>
+
+<% @messages.each do |message| %>
+  <p><strong>You:</strong> <%= message.message %></p>
+  <% if message.response.present? %>
+    <p><strong>ChatGPT:</strong> <%= message.response %></p>
+  <% end %>
+<% end %>
+
